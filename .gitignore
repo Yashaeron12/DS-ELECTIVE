@@ -1,0 +1,8 @@
+# Dependencies
+/node_modules
+
+# Environment Variables
+.env
+
+# Firebase Secret Key (IMPORTANT)
+cloudcollab-3d898-firebase-adminsdk-fbsvc-60b9f4552e
