@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CloudCollab Backend API - Test Interface</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .api-info {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .endpoint-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+        }
+
+        .section {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border: 1px solid #e9ecef;
+        }
+
+        .section h2 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .method-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .method-post { background: #28a745; color: white; }
+        .method-get { background: #007bff; color: white; }
+        .method-put { background: #ffc107; color: black; }
+        .method-delete { background: #dc3545; color: white; }
+
+        .test-form {
+            margin: 15px 0;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 3px rgba(0,123,255,0.25);
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0056b3;
+            transform: translateY(-1px);
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: black;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.4;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .result.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .result.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .auth-status {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .auth-status.authenticated {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .file-upload {
+            border: 2px dashed #ddd;
+            padding: 20px;
+            text-align: center;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+
+        .server-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            z-index: 1000;
+        }
+
+        .server-status.online {
+            background: #28a745;
+            color: white;
+        }
+
+        .server-status.offline {
+            background: #dc3545;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .endpoint-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="server-status" class="server-status offline">⚠️ Server Offline</div>
+    
+    <div class="container">
+        <div class="header">
+            <h1>🚀 CloudCollab Backend API</h1>
+        </div>
+
+        <div class="api-info">
+            <h3>📡 API Base URL: <code>http://localhost:5000/api</code></h3>
+            <p><strong>📋 Features:</strong> User Authentication • Task Management • File Storage • Team Collaboration</p>
+            <div class="auth-status" id="auth-status">
+                🔒 Not Authenticated - Please register and login first
+            </div>
+        </div>
+
+        <div class="endpoint-grid">
+            <!-- Authentication Section -->
+            <div class="section">
+                <h2>🔐 Authentication <span class="method-badge method-post">POST</span></h2>
+                <div class="test-form">
+                    <div class="form-group">
+                        <label class="form-label">Email:</label>
+                        <input type="email" id="register-email" class="form-input" placeholder="your@email.com" value="test@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Password:</label>
+                        <input type="password" id="register-password" class="form-input" placeholder="minimum 6 characters" value="password123">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Display Name:</label>
+                        <input type="text" id="register-name" class="form-input" placeholder="Your Name" value="Test User">
+                    </div>
+                    <button class="btn btn-primary" onclick="testRegister()">
+                        👤 Register New User
+                    </button>
+                    <button class="btn btn-success" onclick="testLogin()">
+                        🔑 Login User
+                    </button>
+                </div>
+                <div id="auth-result" class="result" style="display: none;"></div>
+            </div>
+
+            <!-- Task Management Section -->
+            <div class="section">
+                <h2>✅ Task Management</h2>
+                <div class="test-form">
+                    <div class="form-group">
+                        <label class="form-label">Task Title:</label>
+                        <input type="text" id="task-title" class="form-input" placeholder="Task title" value="Complete API Testing">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Description:</label>
+                        <input type="text" id="task-description" class="form-input" placeholder="Task description" value="Test all API endpoints thoroughly">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Priority:</label>
+                        <select id="task-priority" class="form-input">
+                            <option value="low">Low</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="high">High</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" onclick="testCreateTask()">
+                        ➕ Create Task
+                    </button>
+                    <button class="btn btn-success" onclick="testGetTasks()">
+                        📋 Get All Tasks
+                    </button>
+                    <button class="btn btn-warning" onclick="testUpdateTask()">
+                        ✏️ Update Task
+                    </button>
+                    <button class="btn btn-danger" onclick="testDeleteTask()">
+                        🗑️ Delete Task
+                    </button>
+                </div>
+                <div id="task-result" class="result" style="display: none;"></div>
+            </div>
+
+            <!-- File Management Section -->
+            <div class="section">
+                <h2>📁 File Management</h2>
+                <div class="test-form">
+                    <div class="file-upload">
+                        <input type="file" id="file-input" style="display: none;" onchange="updateFileName()">
+                        <button class="btn btn-primary" onclick="document.getElementById('file-input').click()">
+                            📎 Choose File
+                        </button>
+                        <p id="file-name">No file selected</p>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">File Description:</label>
+                        <input type="text" id="file-description" class="form-input" placeholder="Optional description" value="Test file upload">
+                    </div>
+                    <button class="btn btn-primary" onclick="testFileUpload()">
+                        ⬆️ Upload File
+                    </button>
+                    <button class="btn btn-success" onclick="testGetFiles()">
+                        📄 Get All Files
+                    </button>
+                    <button class="btn btn-warning" onclick="testDownloadFile()">
+                        ⬇️ Download File
+                    </button>
+                </div>
+                <div id="file-result" class="result" style="display: none;"></div>
+            </div>
+
+            <!-- Workspace Management Section -->
+            <div class="section">
+                <h2>👥 Team Management</h2>
+                <div class="test-form">
+                    <div class="form-group">
+                        <label class="form-label">Team Name:</label>
+                        <input type="text" id="workspace-name" class="form-input" placeholder="Team name" value="My Test Team">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Description:</label>
+                        <input type="text" id="workspace-description" class="form-input" placeholder="Team description" value="Test workspace for API">
+                    </div>
+                    <button class="btn btn-primary" onclick="testCreateWorkspace()">
+                        🏢 Create Team
+                    </button>
+                    <button class="btn btn-success" onclick="testGetWorkspaces()">
+                        👥 Get All Teams
+                    </button>
+                </div>
+                <div id="workspace-result" class="result" style="display: none;"></div>
+            </div>
+
+            <!-- Server Health Section -->
+            <div class="section">
+                <h2>🏥 Server Health</h2>
+                <div class="test-form">
+                    <button class="btn btn-success" onclick="testHealth()">
+                        ❤️ Check Server Health
+                    </button>
+                    <button class="btn btn-primary" onclick="testApiInfo()">
+                        📖 Get API Information
+                    </button>
+                </div>
+                <div id="health-result" class="result" style="display: none;"></div>
+            </div>
+
+            <!-- Quick Test Suite -->
+            <div class="section">
+                <h2>⚡ Quick Test Suite</h2>
+                <div class="test-form">
+                    <button class="btn btn-primary" onclick="runFullTestSuite()">
+                        🚀 Run Complete Test Suite
+                    </button>
+                    <button class="btn btn-warning" onclick="clearAllResults()">
+                        🧹 Clear All Results
+                    </button>
+                </div>
+                <div id="suite-result" class="result" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // CloudCollab Backend API Test Suite
+        class APITester {
+            constructor() {
+                this.apiBase = 'http://localhost:5000/api';
+                this.authToken = null;
+                this.currentUser = null;
+                this.lastTaskId = null;
+                this.lastFileId = null;
+                this.lastWorkspaceId = null;
+                
+                this.checkServerStatus();
+                setInterval(() => this.checkServerStatus(), 30000); // Check every 30 seconds
+            }
+
+            async checkServerStatus() {
+                try {
+                    const response = await fetch('http://localhost:5000/health');
+                    const status = document.getElementById('server-status');
+                    if (response.ok) {
+                        status.className = 'server-status online';
+                        status.textContent = '✅ Server Online';
+                    } else {
+                        throw new Error('Server error');
+                    }
+                } catch (error) {
+                    const status = document.getElementById('server-status');
+                    status.className = 'server-status offline';
+                    status.textContent = '❌ Server Offline';
+                }
+            }
+
+            updateAuthStatus() {
+                const authStatus = document.getElementById('auth-status');
+                if (this.authToken && this.currentUser) {
+                    authStatus.className = 'auth-status authenticated';
+                    authStatus.innerHTML = `🔓 Authenticated as: <strong>${this.currentUser.displayName}</strong> (${this.currentUser.email})`;
+                } else {
+                    authStatus.className = 'auth-status';
+                    authStatus.innerHTML = '🔒 Not Authenticated - Please register and login first';
+                }
+            }
+
+            showResult(elementId, data, isError = false) {
+                const element = document.getElementById(elementId);
+                element.style.display = 'block';
+                element.className = `result ${isError ? 'error' : 'success'}`;
+                element.textContent = JSON.stringify(data, null, 2);
+            }
+
+            async makeRequest(endpoint, options = {}) {
+                try {
+                    const url = endpoint.startsWith('http') ? endpoint : `${this.apiBase}${endpoint}`;
+                    const response = await fetch(url, {
+                        ...options,
+                        headers: {
+                            ...options.headers,
+                            ...(this.authToken && { 'Authorization': `Bearer ${this.authToken}` })
+                        }
+                    });
+
+                    const data = await response.json();
+                    return { response, data };
+                } catch (error) {
+                    return { error: error.message };
+                }
+            }
+
+            // Authentication Tests
+            async testRegister() {
+                const email = document.getElementById('register-email').value;
+                const password = document.getElementById('register-password').value;
+                const displayName = document.getElementById('register-name').value;
+
+                if (!email || !password || !displayName) {
+                    this.showResult('auth-result', { error: 'Please fill all fields' }, true);
+                    return;
+                }
+
+                const { response, data, error } = await this.makeRequest('/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password, displayName })
+                });
+
+                if (error) {
+                    this.showResult('auth-result', { error }, true);
+                    return;
+                }
+
+                if (response.ok) {
+                    this.showResult('auth-result', { success: 'User registered successfully!', ...data });
+                } else {
+                    this.showResult('auth-result', data, true);
+                }
+            }
+
+            async testLogin() {
+                const email = document.getElementById('register-email').value;
+
+                if (!email) {
+                    this.showResult('auth-result', { error: 'Please enter email' }, true);
+                    return;
+                }
+
+                const { response, data, error } = await this.makeRequest('/auth/test-login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+
+                if (error) {
+                    this.showResult('auth-result', { error }, true);
+                    return;
+                }
+
+                if (response.ok) {
+                    this.authToken = data.token;
+                    this.currentUser = data.user;
+                    this.updateAuthStatus();
+                    this.showResult('auth-result', { success: 'Login successful!', ...data });
+                } else {
+                    this.showResult('auth-result', data, true);
+                }
+            }
+
+            // Task Tests
+            async testCreateTask() {
+                if (!this.authToken) {
+                    this.showResult('task-result', { error: 'Please login first' }, true);
+                    return;
+                }
+
+                const title = document.getElementById('task-title').value;
+                const description = document.getElementById('task-description').value;
+                const priority = document.getElementById('task-priority').value;
+
+                const { response, data, error } = await this.makeRequest('/tasks', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title, description, priority, category: 'api-test' })
+                });
+
+                if (error) {
+                    this.showResult('task-result', { error }, true);
+                    return;
+                }
+
+                if (response.ok) {
+                    this.lastTaskId = data.id;
+                    this.showResult('task-result', { success: 'Task created!', ...data });
+                } else {
+                    this.showResult('task-result', data, true);
+                }
+            }
+
+            async testGetTasks() {
+                if (!this.authToken) {
+                    this.showResult('task-result', { error: 'Please login first' }, true);
+                    return;
+                }
+
+                const { response, data, error } = await this.makeRequest('/tasks');
+
+                if (error) {
+                    this.showResult('task-result', { error }, true);
+                    return;
+                }
+
+                if (response.ok) {
+                    this.showResult('task-result', { success: `Found ${data.length} tasks`, tasks: data });
+                    if (data.length > 0) this.lastTaskId = data[0].id;
+                } else {
+                    this.showResult('task-result', data, true);
+                }
+            }
+
+            async testUpdateTask() {
+                if (!this.authToken) {
+                    this.showResult('task-result', { error: 'Please login first' }, true);
+                    return;
+                }
+
+                if (!this.lastTaskId) {
+                    this.showResult('task-result', { error: 'Create a task first' }, true);
+                    return;
+                }
+
+                const { response, data, error } = await this.makeRequest(`/tasks/${this.lastTaskId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        title: 'Updated Task Title',
+                        description: 'This task was updated via API test',
+                        priority: 'high',
+                        completed: true
+                    })
+                });
+
+                if (error) {
+                    this.showResult('task-result', { error }, true);
+                    return;
+                }
+
+                if (response.ok) {
+                    this.showResult('task-result', { success: 'Task updated!', ...data });
+                } else {
+                    this.showResult('task-result', data, true);
+                }
+            }
+
+            async testDeleteTask() {
+                if (!this.authToken) {
+                    this.showResult('task-result', { error: 'Please login first' }, true);
+                    return;
+                }
+
+                if (!this.lastTaskId) {
+                    this.showResult('task-result', { error: 'Create a task first' }, true);
+                    return;
+                }
+
+                const { response, data, error } = await this.makeRequest(`/tasks/${this.lastTaskId}`, {
+                    method: 'DELETE'
+                });
+
+                if (error) {
+                    this.showResult('task-result', { error }, true);
+                    return;
+                }
+
+                if (response.ok) {
+                    this.showResult('task-result', { success: 'Task deleted!', ...data });
+                    this.lastTaskId = null;
+                } else {
+                    this.showResult('task-result', data, true);
+                }
+            }
+
+            // File Tests
+            updateFileName() {
+                const fileInput = document.getElementById('file-input');
+                const fileName = document.getElementById('file-name');
+                if (fileInput.files.length > 0) {
+                    fileName.textContent = `Selected: ${fileInput.files[0].name}`;
+                } else {
+                    fileName.textContent = 'No file selected';
+                }
+            }
+
+            async testFileUpload() {
+                if (!this.authToken) {
+                    this.showResult('file-result', { error: 'Please login first' }, true);
+                    return;
+                }
+
+                const fileInput = document.getElementById('file-input');
+                if (!fileInput.files.length) {
+                    this.showResult('file-result', { error: 'Please select a file' }, true);
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('file', fileInput.files[0]);
+                formData.append('description', document.getElementById('file-description').value);
+
+                try {
+                    const response = await fetch(`${this.apiBase}/files/upload`, {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${this.authToken}` },
+                        body: formData
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        this.lastFileId = data.id;
+                        this.showResult('file-result', { success: 'File uploaded!', ...data });
+                    } else {
+                        this.showResult('file-result', data, true);
+                    }
+                } catch (error) {
+                    this.showResult('file-result', { error: error.message }, true);
+                }
+            }
+
+            async testGetFiles() {
+                if (!this.authToken) {
+                    this.showResult('file-result', { error: 'Please login first' }, true);
+                    return;
+                }
+
+                const { response, data, error } = await this.makeRequest('/files');
+
+                if (error) {
+                    this.showResult('file-result', { error }, true);
+                    return;
+                }
+
+                if (response.ok) {
+                    this.showResult('file-result', { success: `Found ${data.length} files`, files: data });
+                    if (data.length > 0) this.lastFileId = data[0].id;
+                } else {
+                    this.showResult('file-result', data, true);
+                }
+            }
+
+            async testDownloadFile() {
+                if (!this.authToken) {
+                    this.showResult('file-result', { error: 'Please login first' }, true);
+                    return;
+                }
+
+                if (!this.lastFileId) {
+                    this.showResult('file-result', { error: 'Upload a file first' }, true);
+                    return;
+                }
+
+                try {
+                    window.open(`${this.apiBase}/files/${this.lastFileId}/download`, '_blank');
+                    this.showResult('file-result', { success: 'Download initiated in new tab' });
+                } catch (error) {
+                    this.showResult('file-result', { error: error.message }, true);
+                }
+            }
+
+            // Workspace Tests
+            async testCreateWorkspace() {
+                if (!this.authToken) {
+                    this.showResult('workspace-result', { error: 'Please login first' }, true);
+                    return;
+                }
+
+                const name = document.getElementById('workspace-name').value;
+                const description = document.getElementById('workspace-description').value;
+
+                const { response, data, error } = await this.makeRequest('/workspaces', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, description, isPrivate: true })
+                });
+
+                if (error) {
+                    this.showResult('workspace-result', { error }, true);
+                    return;
+                }
+
+                if (response.ok) {
+                    this.lastWorkspaceId = data.id;
+                    this.showResult('workspace-result', { success: 'Workspace created!', ...data });
+                } else {
+                    this.showResult('workspace-result', data, true);
+                }
+            }
+
+            async testGetWorkspaces() {
+                if (!this.authToken) {
+                    this.showResult('workspace-result', { error: 'Please login first' }, true);
+                    return;
+                }
+
+                const { response, data, error } = await this.makeRequest('/workspaces');
+
+                if (error) {
+                    this.showResult('workspace-result', { error }, true);
+                    return;
+                }
+
+                if (response.ok) {
+                    this.showResult('workspace-result', { success: `Found ${data.length} workspaces`, workspaces: data });
+                    if (data.length > 0) this.lastWorkspaceId = data[0].id;
+                } else {
+                    this.showResult('workspace-result', data, true);
+                }
+            }
+
+            // Health Tests
+            async testHealth() {
+                const { response, data, error } = await this.makeRequest('http://localhost:5000/health');
+
+                if (error) {
+                    this.showResult('health-result', { error }, true);
+                    return;
+                }
+
+                if (response.ok) {
+                    this.showResult('health-result', { success: 'Server is healthy!', ...data });
+                } else {
+                    this.showResult('health-result', data, true);
+                }
+            }
+
+            async testApiInfo() {
+                const { response, data, error } = await this.makeRequest('http://localhost:5000/');
+
+                if (error) {
+                    this.showResult('health-result', { error }, true);
+                    return;
+                }
+
+                if (response.ok) {
+                    this.showResult('health-result', { success: 'API info retrieved!', ...data });
+                } else {
+                    this.showResult('health-result', data, true);
+                }
+            }
+
+            // Utility Functions
+            async runFullTestSuite() {
+                this.showResult('suite-result', { message: 'Running full test suite...' });
+                
+                try {
+                    // 1. Health check
+                    await this.testHealth();
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    // 2. Register & Login
+                    await this.testRegister();
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    await this.testLogin();
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    // 3. Task operations
+                    await this.testCreateTask();
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    await this.testGetTasks();
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    // 4. Workspace operations
+                    await this.testCreateWorkspace();
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    await this.testGetWorkspaces();
+                    
+                    this.showResult('suite-result', { 
+                        success: 'Full test suite completed!',
+                        message: 'Check individual sections for detailed results'
+                    });
+                } catch (error) {
+                    this.showResult('suite-result', { error: 'Test suite failed', details: error.message }, true);
+                }
+            }
+
+            clearAllResults() {
+                const results = document.querySelectorAll('.result');
+                results.forEach(result => result.style.display = 'none');
+                this.showResult('suite-result', { message: 'All results cleared' });
+            }
+        }
+
+        // Global instance
+        const apiTester = new APITester();
+
+        // Global functions for onclick handlers
+        function testRegister() { apiTester.testRegister(); }
+        function testLogin() { apiTester.testLogin(); }
+        function testCreateTask() { apiTester.testCreateTask(); }
+        function testGetTasks() { apiTester.testGetTasks(); }
+        function testUpdateTask() { apiTester.testUpdateTask(); }
+        function testDeleteTask() { apiTester.testDeleteTask(); }
+        function updateFileName() { apiTester.updateFileName(); }
+        function testFileUpload() { apiTester.testFileUpload(); }
+        function testGetFiles() { apiTester.testGetFiles(); }
+        function testDownloadFile() { apiTester.testDownloadFile(); }
+        function testCreateWorkspace() { apiTester.testCreateWorkspace(); }
+        function testGetWorkspaces() { apiTester.testGetWorkspaces(); }
+        function testHealth() { apiTester.testHealth(); }
+        function testApiInfo() { apiTester.testApiInfo(); }
+        function runFullTestSuite() { apiTester.runFullTestSuite(); }
+        function clearAllResults() { apiTester.clearAllResults(); }
+    </script>
+</body>
+</html>
