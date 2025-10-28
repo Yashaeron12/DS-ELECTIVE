@@ -15,7 +15,8 @@ try {
   if (!admin.apps.length) {
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
-      projectId: process.env.FIREBASE_PROJECT_ID || 'cloudcollab-3d898'
+      projectId: process.env.FIREBASE_PROJECT_ID || 'cloudcollab-3d898',
+      storageBucket: 'cloudcollab-3d898.appspot.com'
     });
   }
   
@@ -42,13 +43,12 @@ app.use(cors({
     callback(null, true); // Allow all origins in development
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'], // Add PATCH
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-app.use(express.static(__dirname));
 
 // Request logging middleware
 app.use((req, res, next) => {
@@ -70,14 +70,42 @@ app.get('/health', (req, res) => {
 // Root endpoint
 app.get('/', (req, res) => {
   res.json({ 
-    message: 'CloudCollab API Server',
+    message: 'CloudCollab Backend API Server',
     version: '1.0.0',
     status: 'running',
+    documentation: 'See README.md for API documentation',
     endpoints: {
       health: '/health',
-      register: '/api/auth/register',
-      login: '/api/auth/login',
-      tasks: '/api/tasks'
+      auth: {
+        register: 'POST /api/auth/register',
+        login: 'POST /api/auth/login',
+        testLogin: 'POST /api/auth/test-login'
+      },
+      tasks: {
+        list: 'GET /api/tasks',
+        create: 'POST /api/tasks',
+        update: 'PUT /api/tasks/:id',
+        delete: 'DELETE /api/tasks/:id',
+        toggleComplete: 'PATCH /api/tasks/:id/complete'
+      },
+      files: {
+        list: 'GET /api/files',
+        upload: 'POST /api/files/upload',
+        download: 'GET /api/files/:id/download',
+        update: 'PUT /api/files/:id',
+        delete: 'DELETE /api/files/:id',
+        share: 'POST /api/files/:id/share',
+        sharedWithMe: 'GET /api/files/shared'
+      },
+      workspaces: {
+        list: 'GET /api/workspaces',
+        create: 'POST /api/workspaces',
+        update: 'PUT /api/workspaces/:id',
+        delete: 'DELETE /api/workspaces/:id',
+        invite: 'POST /api/workspaces/:id/invite',
+        members: 'GET /api/workspaces/:id/members',
+        removeMember: 'DELETE /api/workspaces/:id/members/:memberId'
+      }
     }
   });
 });
@@ -221,6 +249,24 @@ try {
   console.log('✅ Task routes loaded successfully');
 } catch (error) {
   console.error('❌ Could not load task routes:', error.message);
+}
+
+// File Routes
+try {
+  const fileRoutes = require('./routes/files');
+  app.use('/api/files', fileRoutes);
+  console.log('✅ File routes loaded successfully');
+} catch (error) {
+  console.error('❌ Could not load file routes:', error.message);
+}
+
+// Workspace Routes
+try {
+  const workspaceRoutes = require('./routes/workspaces');
+  app.use('/api/workspaces', workspaceRoutes);
+  console.log('✅ Workspace routes loaded successfully');
+} catch (error) {
+  console.error('❌ Could not load workspace routes:', error.message);
 }
 
 // Error handling middleware
