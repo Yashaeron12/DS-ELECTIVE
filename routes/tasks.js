@@ -71,22 +71,59 @@ router.post('/', verifyToken, async (req, res) => {
 router.put('/:id', verifyToken, async (req, res) => {
   try {
     const { id } = req.params;
-    const updateData = {
-      ...req.body,
-      updatedAt: admin.firestore.FieldValue.serverTimestamp()
-    };
+    console.log('Updating task:', id, 'for user:', req.user.uid);
     
-    // Verify task belongs to user
-    const taskDoc = await db.collection('tasks').doc(id).get();
-    if (!taskDoc.exists || taskDoc.data().userId !== req.user.uid) {
+    // First, verify the task exists and belongs to the user
+    const taskRef = db.collection('tasks').doc(id);
+    const taskDoc = await taskRef.get();
+    
+    if (!taskDoc.exists) {
       return res.status(404).json({ error: 'Task not found' });
     }
     
-    await db.collection('tasks').doc(id).update(updateData);
-    res.json({ message: 'Task updated successfully' });
+    const taskData = taskDoc.data();
+    if (taskData.userId !== req.user.uid) {
+      return res.status(403).json({ error: 'Access denied: Not your task' });
+    }
+    
+    // Prepare update data
+    const allowedFields = ['title', 'description', 'priority', 'dueDate', 'category', 'completed'];
+    const updateData = {};
+    
+    // Only update provided fields
+    for (const field of allowedFields) {
+      if (req.body.hasOwnProperty(field)) {
+        updateData[field] = req.body[field];
+      }
+    }
+    
+    // Always update the timestamp
+    updateData.updatedAt = admin.firestore.FieldValue.serverTimestamp();
+    
+    // Update the task
+    await taskRef.update(updateData);
+    
+    // Get the updated task to return
+    const updatedDoc = await taskRef.get();
+    const updatedTask = {
+      id: updatedDoc.id,
+      ...updatedDoc.data(),
+      createdAt: updatedDoc.data().createdAt?.toDate?.() || null,
+      updatedAt: updatedDoc.data().updatedAt?.toDate?.() || new Date()
+    };
+    
+    console.log('Task updated successfully');
+    res.json({
+      message: 'Task updated successfully',
+      task: updatedTask
+    });
+    
   } catch (error) {
     console.error('Error updating task:', error);
-    res.status(500).json({ error: 'Failed to update task' });
+    res.status(500).json({ 
+      error: 'Failed to update task',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 });
 
@@ -94,18 +131,83 @@ router.put('/:id', verifyToken, async (req, res) => {
 router.delete('/:id', verifyToken, async (req, res) => {
   try {
     const { id } = req.params;
+    console.log('Deleting task:', id, 'for user:', req.user.uid);
     
-    // Verify task belongs to user
-    const taskDoc = await db.collection('tasks').doc(id).get();
-    if (!taskDoc.exists || taskDoc.data().userId !== req.user.uid) {
+    // First, verify the task exists and belongs to the user
+    const taskRef = db.collection('tasks').doc(id);
+    const taskDoc = await taskRef.get();
+    
+    if (!taskDoc.exists) {
       return res.status(404).json({ error: 'Task not found' });
     }
     
-    await db.collection('tasks').doc(id).delete();
-    res.json({ message: 'Task deleted successfully' });
+    const taskData = taskDoc.data();
+    if (taskData.userId !== req.user.uid) {
+      return res.status(403).json({ error: 'Access denied: Not your task' });
+    }
+    
+    // Store task data before deletion for response
+    const deletedTask = {
+      id: taskDoc.id,
+      ...taskData,
+      createdAt: taskData.createdAt?.toDate?.() || null,
+      updatedAt: taskData.updatedAt?.toDate?.() || null
+    };
+    
+    // Delete the task
+    await taskRef.delete();
+    
+    console.log('Task deleted successfully');
+    res.json({
+      message: 'Task deleted successfully',
+      deletedTask: deletedTask
+    });
+    
   } catch (error) {
     console.error('Error deleting task:', error);
-    res.status(500).json({ error: 'Failed to delete task' });
+    res.status(500).json({ 
+      error: 'Failed to delete task',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+// PATCH /api/tasks/:id/complete - Toggle task completion (bonus endpoint)
+router.patch('/:id/complete', verifyToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log('Toggling completion for task:', id);
+    
+    const taskRef = db.collection('tasks').doc(id);
+    const taskDoc = await taskRef.get();
+    
+    if (!taskDoc.exists) {
+      return res.status(404).json({ error: 'Task not found' });
+    }
+    
+    const taskData = taskDoc.data();
+    if (taskData.userId !== req.user.uid) {
+      return res.status(403).json({ error: 'Access denied: Not your task' });
+    }
+    
+    // Toggle completion status
+    const newCompletionStatus = !taskData.completed;
+    
+    await taskRef.update({
+      completed: newCompletionStatus,
+      completedAt: newCompletionStatus ? admin.firestore.FieldValue.serverTimestamp() : null,
+      updatedAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+    
+    res.json({
+      message: `Task marked as ${newCompletionStatus ? 'completed' : 'incomplete'}`,
+      completed: newCompletionStatus,
+      taskId: id
+    });
+    
+  } catch (error) {
+    console.error('Error toggling task completion:', error);
+    res.status(500).json({ error: 'Failed to update task completion' });
   }
 });
 
