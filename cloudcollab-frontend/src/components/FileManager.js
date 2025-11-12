@@ -297,9 +297,9 @@ const FileManager = () => {
       console.log('🧪 Testing download URL:', downloadUrl);
       
       try {
-        // Try a HEAD request first to check if the file exists
+        // Fetch the file with authentication
         const response = await fetch(downloadUrl, { 
-          method: 'HEAD',
+          method: 'GET',
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('authToken')}`
           }
@@ -311,13 +311,20 @@ const FileManager = () => {
         
         console.log('✅ File exists, proceeding with download');
         
-        // Create proper download link
+        // Get the file blob
+        const blob = await response.blob();
+        
+        // Create download link with blob URL
+        const blobUrl = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
-        link.href = downloadUrl;
+        link.href = blobUrl;
         link.download = file.name || 'download';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+        
+        // Clean up blob URL
+        window.URL.revokeObjectURL(blobUrl);
         
         showSnackbar(`Downloading "${file.name}"...`, 'success');
         
