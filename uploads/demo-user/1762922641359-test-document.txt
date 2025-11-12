@@ -1,0 +1,11 @@
+This is a test file for CloudCollab file download and sharing functionality.
+
+Created at: 2025-11-12T04:44:01.359Z
+File name: 1762922641359-test-document.txt
+
+This file can be used to test:
+1. File download from Files page
+2. File sharing via clipboard link
+3. File deletion functionality
+
+CloudCollab - Collaborative Cloud Platform

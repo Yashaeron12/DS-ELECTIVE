@@ -1,0 +1,4 @@
+Test file for task-file integration
+Task ID: jzYyGAzK1QrdikLWtQJW
+Created at: 2025-11-11T19:59:38.792Z
+This file tests the complete integration between tasks and files.
