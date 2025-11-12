@@ -47,7 +47,9 @@ const io = socketIo(server, {
         'http://localhost:8080',
         'http://127.0.0.1:3000',
         'http://127.0.0.1:8080',
-        'http://localhost:5000'
+        'http://localhost:5000',
+        'https://cloudcollab-3d898.web.app',
+        'https://cloudcollab-3d898.firebaseapp.com'
       ];
       
       if (!origin || allowedOrigins.includes(origin)) {
@@ -150,14 +152,16 @@ app.use(cors({
     if (!origin) return callback(null, true);
     
     const allowedOrigins = process.env.NODE_ENV === 'production'
-      ? (process.env.ALLOWED_ORIGINS || '').split(',').filter(Boolean)
+      ? (process.env.ALLOWED_ORIGINS || 'https://cloudcollab-3d898.web.app,https://cloudcollab-3d898.firebaseapp.com').split(',').filter(Boolean)
       : [
           'http://localhost:3000',
           'http://localhost:3001', 
           'http://localhost:8080',
           'http://127.0.0.1:3000',
           'http://127.0.0.1:8080',
-          'http://localhost:5000'
+          'http://localhost:5000',
+          'https://cloudcollab-3d898.web.app',
+          'https://cloudcollab-3d898.firebaseapp.com'
         ];
     
     if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV !== 'production') {
