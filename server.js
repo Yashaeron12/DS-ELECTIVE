@@ -4,28 +4,21 @@ const cors = require('cors');
 const http = require('http');
 const socketIo = require('socket.io');
 require('dotenv').config();
-const admin = require('firebase-admin');
+
+// Import Firebase configuration (handles both local and production)
+const { admin, db, auth, storage } = require('./firebaseConfig');
+
 const path = require('path');
   
 const app = express();
 const server = http.createServer(app);
 const PORT = process.env.PORT || 5000;
 
-// Initialize Firebase Admin
+// Firebase is already initialized in firebaseConfig.js
+// Test Firebase Storage connection
 try {
-  const serviceAccount = require('./cloudcollab-3d898-firebase-adminsdk-fbsvc-72a59c38b1.json'); // Fixed filename
-  
-  if (!admin.apps.length) {
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount),
-      projectId: process.env.FIREBASE_PROJECT_ID || 'cloudcollab-3d898',
-      storageBucket: 'cloudcollab-3d898.appspot.com'
-    });
-  }
-  
-  // Test Firebase Storage connection
   const bucket = admin.storage().bucket();
-  console.log(`🪣 Testing Firebase Storage bucket: ${bucket.name}`);
+  console.log(`🪣 Firebase Storage bucket: ${bucket.name}`);
   
   // Test bucket access (non-blocking)
   bucket.exists().then(([exists]) => {
