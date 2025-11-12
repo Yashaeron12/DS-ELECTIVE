@@ -711,10 +711,9 @@ npm run build
 ## 🤝 Contributing
 
 ### Team Members
-- **Yashaeron12** - Project Lead & Full-Stack Development
-- **Arjun Singh** - Backend Development & Security
-- **Vivek Choudhary** - Frontend Development & UI/UX
-- **Vidyansh Dwivedi** - Testing & Documentation
+- **Yash Aeron** - Backend Architecture & API Development
+- **Shefali Yadav** - Cloud Infrastructure & Quality Assurance
+- **Hardik Pant** - Frontend Development & User Interface Design
 
 ### Development Workflow
 1. Fork the repository
