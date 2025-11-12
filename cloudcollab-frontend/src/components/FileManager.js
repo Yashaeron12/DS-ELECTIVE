@@ -278,6 +278,9 @@ const FileManager = () => {
     try {
       console.log('🔽 Download clicked for file:', file);
       
+      // Use the same API base URL as the rest of the app
+      const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://cloudcollab-backend.onrender.com/api';
+      
       let downloadUrl;
       
       if (file.downloadUrl) {
@@ -287,7 +290,7 @@ const FileManager = () => {
       } else {
         // This shouldn't happen if files are properly stored, but fallback
         console.warn('⚠️ No downloadUrl found, using file ID fallback');
-        downloadUrl = `${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/files/download/${file.id}`;
+        downloadUrl = `${API_BASE_URL}/files/download/${file.id}`;
       }
       
       // Test the URL first to see if it's accessible
@@ -333,6 +336,9 @@ const FileManager = () => {
     try {
       console.log('🔗 Share clicked for file:', file);
       
+      // Use the same API base URL as the rest of the app
+      const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://cloudcollab-backend.onrender.com/api';
+      
       let shareUrl;
       
       if (file.downloadUrl) {
@@ -340,7 +346,7 @@ const FileManager = () => {
         console.log('📎 Using stored download URL for sharing:', shareUrl);
       } else {
         console.warn('⚠️ No downloadUrl found for sharing, using file ID fallback');
-        shareUrl = `${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/files/download/${file.id}`;
+        shareUrl = `${API_BASE_URL}/files/download/${file.id}`;
       }
       
       // Copy download link to clipboard for sharing
