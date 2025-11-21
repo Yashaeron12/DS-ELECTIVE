@@ -1,9 +1,5 @@
-// middleware/validation.js - Input validation middleware
 const validator = require('validator');
 
-/**
- * Validate email format
- */
 const validateEmail = (req, res, next) => {
   const { email } = req.body;
   
@@ -15,14 +11,10 @@ const validateEmail = (req, res, next) => {
     return res.status(400).json({ error: 'Invalid email format' });
   }
   
-  // Normalize email
   req.body.email = validator.normalizeEmail(email);
   next();
 };
 
-/**
- * Validate password strength
- */
 const validatePassword = (req, res, next) => {
   const { password } = req.body;
   
@@ -41,9 +33,6 @@ const validatePassword = (req, res, next) => {
   next();
 };
 
-/**
- * Validate string length
- */
 const validateStringLength = (field, minLength = 1, maxLength = 1000) => {
   return (req, res, next) => {
     const value = req.body[field];
@@ -66,15 +55,11 @@ const validateStringLength = (field, minLength = 1, maxLength = 1000) => {
       });
     }
     
-    // Trim whitespace
     req.body[field] = strValue;
     next();
   };
 };
 
-/**
- * Validate UUID format
- */
 const validateUUID = (paramName) => {
   return (req, res, next) => {
     const value = req.params[paramName] || req.body[paramName];
@@ -91,20 +76,13 @@ const validateUUID = (paramName) => {
   };
 };
 
-/**
- * Check if string looks like a Firestore document ID
- */
 const isFirestoreId = (str) => {
   return /^[a-zA-Z0-9]{20,}$/.test(str);
 };
 
-/**
- * Sanitize HTML to prevent XSS
- */
 const sanitizeHtml = (field) => {
   return (req, res, next) => {
     if (req.body[field]) {
-      // Basic HTML escape - in production, use a library like DOMPurify
       req.body[field] = req.body[field]
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
@@ -117,16 +95,12 @@ const sanitizeHtml = (field) => {
   };
 };
 
-/**
- * Validate file upload
- */
 const validateFileUpload = (req, res, next) => {
   if (!req.file) {
     return res.status(400).json({ error: 'No file uploaded' });
   }
   
-  // Check file size (already handled by multer, but double-check)
-  const maxSize = 10 * 1024 * 1024; // 10MB
+  const maxSize = 10 * 1024 * 1024;
   if (req.file.size > maxSize) {
     return res.status(400).json({ 
       error: 'File too large',
@@ -139,7 +113,6 @@ const validateFileUpload = (req, res, next) => {
     return res.status(400).json({ error: 'Invalid filename' });
   }
   
-  // Check for dangerous file extensions
   const dangerousExtensions = ['.exe', '.bat', '.cmd', '.sh', '.app'];
   const extension = req.file.originalname.toLowerCase().match(/\.[^.]+$/)?.[0];
   
@@ -153,9 +126,6 @@ const validateFileUpload = (req, res, next) => {
   next();
 };
 
-/**
- * Validate role value
- */
 const validateRole = (req, res, next) => {
   const { role } = req.body;
   
@@ -178,9 +148,6 @@ const validateRole = (req, res, next) => {
   next();
 };
 
-/**
- * Validate priority value
- */
 const validatePriority = (req, res, next) => {
   const { priority } = req.body;
   

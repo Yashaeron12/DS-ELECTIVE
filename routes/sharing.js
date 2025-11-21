@@ -1,4 +1,3 @@
-// routes/sharing.js - Enhanced file sharing capabilities
 const express = require('express');
 const router = express.Router();
 const admin = require('firebase-admin');
@@ -21,28 +20,23 @@ router.post('/generate-link/:fileId', verifyToken, async (req, res) => {
     
     const fileData = fileDoc.data();
     
-    // Check if user owns the file or has permission
     if (fileData.uploadedBy !== req.user.uid) {
       return res.status(403).json({ error: 'Access denied' });
     }
     
-    // Generate unique share token
     const shareToken = crypto.randomBytes(32).toString('hex');
     
-    // Calculate expiry date
     let expiresAt = null;
     if (expiresIn) {
       expiresAt = new Date();
       expiresAt.setHours(expiresAt.getHours() + parseInt(expiresIn));
     }
     
-    // Generate password if required
     let password = null;
     if (requirePassword) {
       password = crypto.randomBytes(8).toString('hex');
     }
     
-    // Save share data
     const shareData = {
       fileId: fileId,
       shareToken: shareToken,

@@ -1,4 +1,3 @@
-// routes/organizations.js - Organization management routes
 const express = require('express');
 const router = express.Router();
 const admin = require('firebase-admin');
@@ -17,7 +16,6 @@ const {
 
 const db = admin.firestore();
 
-// GET /api/organizations/current - Get current user's organization details
 router.get('/current', verifyToken, async (req, res) => {
   try {
     const organizationId = await getUserOrganizationId(req.user.uid);
@@ -48,7 +46,6 @@ router.get('/current', verifyToken, async (req, res) => {
   }
 });
 
-// POST /api/organizations - Create new organization (for new signups)
 router.post('/', verifyToken, async (req, res) => {
   try {
     const { name, description } = req.body;
@@ -57,13 +54,11 @@ router.post('/', verifyToken, async (req, res) => {
       return res.status(400).json({ error: 'Organization name is required' });
     }
     
-    // Check if user already belongs to an organization
     const existingOrgId = await getUserOrganizationId(req.user.uid);
     if (existingOrgId) {
       return res.status(400).json({ error: 'User already belongs to an organization' });
     }
     
-    // Create organization
     const organizationRef = db.collection('organizations').doc();
     const organizationData = {
       name: name.trim(),

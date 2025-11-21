@@ -1,4 +1,3 @@
-// routes/workspaces.js - Team/Workspace management for collaboration
 const express = require('express');
 const router = express.Router();
 const admin = require('firebase-admin');
@@ -19,12 +18,10 @@ const socketService = require('../services/socketService');
 
 const db = admin.firestore();
 
-// GET /api/workspaces - Get all workspaces for user's organization (requires VIEW_WORKSPACES permission)
 router.get('/', verifyToken, requireOrganizationPermission(PERMISSIONS.VIEW_WORKSPACES), async (req, res) => {
   try {
     console.log(`📋 Fetching workspaces for user: ${req.user.uid}, organization: ${req.organizationId}`);
     
-    // Get workspaces from user's organization where user is owner or member
     const [ownedSnapshot, memberSnapshot] = await Promise.all([
       db.collection('workspaces')
         .where('organizationId', '==', req.organizationId)
@@ -37,7 +34,6 @@ router.get('/', verifyToken, requireOrganizationPermission(PERMISSIONS.VIEW_WORK
 
     const workspaces = [];
     
-    // Add owned workspaces
     ownedSnapshot.forEach(doc => {
       const data = doc.data();
       workspaces.push({
@@ -49,14 +45,12 @@ router.get('/', verifyToken, requireOrganizationPermission(PERMISSIONS.VIEW_WORK
       });
     });
 
-    // Add member workspaces (only from same organization)
     for (const memberDoc of memberSnapshot.docs) {
       const memberData = memberDoc.data();
       const workspaceDoc = await db.collection('workspaces').doc(memberData.workspaceId).get();
       
       if (workspaceDoc.exists) {
         const workspaceData = workspaceDoc.data();
-        // Only include workspaces from the same organization
         if (workspaceData.organizationId === req.organizationId) {
           workspaces.push({
             id: workspaceDoc.id,
@@ -78,7 +72,6 @@ router.get('/', verifyToken, requireOrganizationPermission(PERMISSIONS.VIEW_WORK
   }
 });
 
-// POST /api/workspaces - Create new workspace (requires CREATE_WORKSPACES permission within organization)
 router.post('/', verifyToken, requireOrganizationPermission(PERMISSIONS.CREATE_WORKSPACES), async (req, res) => {
   try {
     const { name, description, isPrivate = true } = req.body;

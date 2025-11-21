@@ -1,4 +1,3 @@
-// routes/files.js - File upload, storage and sharing with RBAC (Local Storage Version)
 const express = require('express');
 const router = express.Router();
 const admin = require('firebase-admin');
@@ -12,18 +11,15 @@ const socketService = require('../services/socketService');
 
 const db = admin.firestore();
 
-// Create uploads directory if it doesn't exist
 const uploadsDir = path.join(__dirname, '..', 'uploads');
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
   console.log('📁 Created uploads directory:', uploadsDir);
 }
 
-// Configure multer for local file storage
 const upload = multer({
   storage: multer.diskStorage({
     destination: (req, file, cb) => {
-      // Create user-specific folder
       const userDir = path.join(uploadsDir, req.user?.uid || 'anonymous');
       if (!fs.existsSync(userDir)) {
         fs.mkdirSync(userDir, { recursive: true });
@@ -31,14 +27,13 @@ const upload = multer({
       cb(null, userDir);
     },
     filename: (req, file, cb) => {
-      // Generate unique filename with timestamp
       const timestamp = Date.now();
       const fileName = `${timestamp}-${file.originalname}`;
       cb(null, fileName);
     }
   }),
   limits: {
-    fileSize: 10 * 1024 * 1024, // 10MB limit
+    fileSize: 10 * 1024 * 1024,
   },
   fileFilter: (req, file, cb) => {
     const allowedTypes = [
@@ -58,11 +53,9 @@ const upload = multer({
   }
 });
 
-// GET /api/files/simple - Simple file listing without complex queries
 router.get('/simple', verifyToken, async (req, res) => {
   console.log('📋 Simple file listing for user:', req.user.uid);
   try {
-    // Get all files and filter in JavaScript to avoid index issues
     const allFiles = await db.collection('files').get();
     console.log('📊 Total files in database:', allFiles.size);
     
@@ -70,7 +63,6 @@ router.get('/simple', verifyToken, async (req, res) => {
     
     allFiles.forEach(doc => {
       const data = doc.data();
-      // Filter for current user
       if (data.uploadedBy === req.user.uid) {
         userFiles.push({
           id: doc.id,

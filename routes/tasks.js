@@ -1,4 +1,3 @@
-// routes/tasks.js
 const express = require('express');
 const router = express.Router();
 const admin = require('firebase-admin');
@@ -14,7 +13,6 @@ const socketService = require('../services/socketService');
 
 const db = admin.firestore();
 
-// GET /api/tasks - Get all tasks for authenticated user (requires VIEW_TASKS permission)
 router.get('/', verifyToken, requirePermission(PERMISSIONS.VIEW_TASKS), async (req, res) => {
   try {
     const tasksSnapshot = await db.collection('tasks')
@@ -40,7 +38,6 @@ router.get('/', verifyToken, requirePermission(PERMISSIONS.VIEW_TASKS), async (r
   }
 });
 
-// POST /api/tasks - Create new task (requires CREATE_TASKS permission)
 router.post('/', verifyToken, requirePermission(PERMISSIONS.CREATE_TASKS), async (req, res) => {
   try {
     const { title, description, priority = 'medium', dueDate, category = 'general', assignedTo, workspaceId } = req.body;
@@ -56,19 +53,17 @@ router.post('/', verifyToken, requirePermission(PERMISSIONS.CREATE_TASKS), async
       dueDate: dueDate || null,
       category,
       userId: req.user.uid,
-      assignedTo: assignedTo || req.user.uid, // Default to creator if not assigned
+      assignedTo: assignedTo || req.user.uid,
       workspaceId: workspaceId || null,
       completed: false,
-      // Task-File Integration Fields
-      attachedFiles: [], // Array of file IDs attached to this task
-      attachmentCount: 0, // Quick count of attachments
+      attachedFiles: [],
+      attachmentCount: 0,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
       updatedAt: admin.firestore.FieldValue.serverTimestamp()
     };
     
     const docRef = await db.collection('tasks').add(taskData);
     
-    // Send task assignment notification if assigned to someone else
     if (assignedTo && assignedTo !== req.user.uid) {
       try {
         await notificationHelpers.taskAssigned({

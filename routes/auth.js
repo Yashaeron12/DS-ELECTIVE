@@ -1,4 +1,3 @@
-// routes/auth.js - Authentication routes for CloudCollab
 const express = require('express');
 const admin = require('firebase-admin');
 const router = express.Router();
@@ -6,19 +5,16 @@ const { ROLES, PERMISSIONS, requirePermission } = require('../middleware/rbac');
 const { verifyToken } = require('../middleware/auth');
 const { getUserSystemRole, canAssignRole } = require('../middleware/rbac');
 
-// Ensure demo user exists on startup
 const ensureDemoUser = async () => {
   try {
     const demoEmail = 'demo@cloudcollab.com';
     let userRecord;
     
     try {
-      // Check if demo user already exists
       userRecord = await admin.auth().getUserByEmail(demoEmail);
-      console.log('✅ Demo user already exists');
+      console.log('Demo user already exists');
     } catch (error) {
       if (error.code === 'auth/user-not-found') {
-        // Create demo user
         console.log('Creating demo user...');
         userRecord = await admin.auth().createUser({
           email: demoEmail,
@@ -28,7 +24,6 @@ const ensureDemoUser = async () => {
           disabled: false
         });
         
-        // Create demo organization first
         const db = admin.firestore();
         const demoOrgRef = db.collection('organizations').doc();
         await demoOrgRef.set({
@@ -43,20 +38,18 @@ const ensureDemoUser = async () => {
           }
         });
         
-        // Create user document in Firestore
         await db.collection('users').doc(userRecord.uid).set({
           email: demoEmail,
           displayName: 'Demo User',
-          // Never store passwords in Firestore - Firebase Auth handles authentication
-          role: ROLES.MEMBER, // System role
-          organizationId: demoOrgRef.id, // Demo organization
-          organizationRole: ROLES.ORG_OWNER, // Organization owner
+          role: ROLES.MEMBER,
+          organizationId: demoOrgRef.id,
+          organizationRole: ROLES.ORG_OWNER,
           createdAt: admin.firestore.FieldValue.serverTimestamp(),
           lastLoginAt: admin.firestore.FieldValue.serverTimestamp(),
           isActive: true
         });
         
-        console.log('✅ Demo user created successfully');
+        console.log('Demo user created successfully');
       } else {
         throw error;
       }
@@ -66,15 +59,12 @@ const ensureDemoUser = async () => {
   }
 };
 
-// Initialize demo user
 ensureDemoUser();
 
-// Register new user
 router.post('/register', async (req, res) => {
   try {
     const { email, password, displayName } = req.body;
 
-    // Validate input
     if (!email || !password || !displayName) {
       return res.status(400).json({
         success: false,
@@ -103,8 +93,7 @@ router.post('/register', async (req, res) => {
     // Create user in Firebase Auth
     const userRecord = await admin.auth().createUser({
       email: email,
-      password: password,
-      displayName: displayName,
+displayName: displayName,
       emailVerified: false,
       disabled: false
     });
@@ -142,8 +131,8 @@ router.post('/register', async (req, res) => {
     
     await db.collection('users').doc(userRecord.uid).set({
       email: email,
-      displayName: displayName,
-      password: password, // Store password for validation (in production, hash this!)
+displayName: displayName,
+      
       role: ROLES.MEMBER, // Default system role for new users
       organizationId: null, // Will be set when user creates/joins organization
       organizationRole: null, // Will be set when user creates/joins organization
@@ -243,28 +232,6 @@ router.post('/login', async (req, res) => {
 
     const userData = userDoc.data();
     
-    // For demo purposes, implement password validation
-    // In production, you'd use proper password hashing (bcrypt) or Firebase Client SDK
-    let passwordValid = false;
-    
-    if (email === 'demo@cloudcollab.com' && password === 'demo123') {
-      passwordValid = true;
-    } else if (userData.password) {
-      // For other users, check stored password (you should hash passwords in production)
-      passwordValid = (userData.password === password);
-    } else {
-      // If no password stored, reject
-      passwordValid = false;
-    }
-
-    if (!passwordValid) {
-      return res.status(401).json({
-        success: false,
-        error: 'Invalid email or password'
-      });
-    }
-    
-    // Create simple JWT token for login
     const token = Buffer.from(JSON.stringify({
       uid: userRecord.uid,
       email: userRecord.email,

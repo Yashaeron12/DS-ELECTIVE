@@ -1,52 +1,37 @@
-// middleware/rbac.js - Role-Based Access Control middleware
 const admin = require('firebase-admin');
 const db = admin.firestore();
 
-// Define role hierarchy and permissions
 const ROLES = {
   SUPER_ADMIN: 'super_admin',
-  ORG_OWNER: 'org_owner',      // Organization owner - highest level within org
-  ORG_ADMIN: 'org_admin',      // Organization admin - can manage all org workspaces
-  WORKSPACE_ADMIN: 'workspace_admin', // Workspace admin - can manage specific workspace
+  ORG_OWNER: 'org_owner',
+  ORG_ADMIN: 'org_admin',
+  WORKSPACE_ADMIN: 'workspace_admin',
   MANAGER: 'manager',
   MEMBER: 'member',
   VIEWER: 'viewer'
 };
 
 const PERMISSIONS = {
-  // System permissions (only for super admin)
   MANAGE_SYSTEM: 'manage_system',
-  
-  // Organization permissions
   MANAGE_ORGANIZATION: 'manage_organization',
   CREATE_ORGANIZATION: 'create_organization',
   DELETE_ORGANIZATION: 'delete_organization',
   MANAGE_ORG_MEMBERS: 'manage_org_members',
   VIEW_ORG_MEMBERS: 'view_org_members',
-  
-  // Workspace permissions
   CREATE_WORKSPACES: 'create_workspaces',
   EDIT_WORKSPACES: 'edit_workspaces',
   DELETE_WORKSPACES: 'delete_workspaces',
   VIEW_WORKSPACES: 'view_workspaces',
-  
-  // Member permissions (within organization/workspace)
   MANAGE_MEMBERS: 'manage_members',
   VIEW_MEMBERS: 'view_members',
-  
-  // File permissions
   UPLOAD_FILES: 'upload_files',
   DELETE_FILES: 'delete_files',
   SHARE_FILES: 'share_files',
   VIEW_FILES: 'view_files',
-  
-  // Task permissions
   CREATE_TASKS: 'create_tasks',
   ASSIGN_TASKS: 'assign_tasks',
   DELETE_TASKS: 'delete_tasks',
   VIEW_TASKS: 'view_tasks',
-  
-  // Legacy compatibility
   CREATE_WORKSPACE: 'create_workspaces',
   DELETE_WORKSPACE: 'delete_workspaces',
   MANAGE_WORKSPACE: 'edit_workspaces',
@@ -56,9 +41,8 @@ const PERMISSIONS = {
   MANAGE_ROLES: 'manage_members'
 };
 
-// Role-permission mapping
 const ROLE_PERMISSIONS = {
-  [ROLES.SUPER_ADMIN]: Object.values(PERMISSIONS), // All permissions (system-wide)
+  [ROLES.SUPER_ADMIN]: Object.values(PERMISSIONS),
   
   [ROLES.ORG_OWNER]: [
     PERMISSIONS.MANAGE_ORGANIZATION,
@@ -311,15 +295,15 @@ const requireOrganizationPermission = (permission) => {
       const userRole = await getUserOrganizationRole(req.user.uid);
       const organizationId = await getUserOrganizationId(req.user.uid);
       
-      console.log(`🔐 Checking organization permission for user ${req.user.uid}: role=${userRole}, org=${organizationId}, required=${permission}`);
+      console.log(`Checking organization permission for user ${req.user.uid}: role=${userRole}, org=${organizationId}, required=${permission}`);
       
       if (!organizationId) {
-        console.log(`⛔ Organization permission denied for ${req.user.uid}: No organization membership`);
+        console.log(`Organization permission denied for ${req.user.uid}: No organization membership`);
         return res.status(403).json({ error: 'Access denied: No organization membership' });
       }
       
       if (!hasPermission(userRole, permission)) {
-        console.log(`⛔ Organization permission denied for ${req.user.uid}: Insufficient permissions (has: ${userRole}, needs: ${permission})`);
+        console.log(`Organization permission denied for ${req.user.uid}: Insufficient permissions (has: ${userRole}, needs: ${permission})`);
         return res.status(403).json({ 
           error: 'Access denied: Insufficient organization permissions',
           required: permission,
