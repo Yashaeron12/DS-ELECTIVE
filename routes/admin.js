@@ -1,4 +1,3 @@
-// routes/admin.js - Organization-scoped admin routes
 const express = require('express');
 const router = express.Router();
 const admin = require('firebase-admin');
@@ -16,12 +15,10 @@ const {
 
 const db = admin.firestore();
 
-// GET /api/admin/users - Get users within the admin's organization
 router.get('/users', verifyToken, requireOrganizationPermission(PERMISSIONS.VIEW_ORG_MEMBERS), async (req, res) => {
   try {
     const organizationUsers = await getOrganizationUsers(req.user.uid);
     
-    // Format users for admin panel display
     const users = organizationUsers.map(user => ({
       id: user.id,
       displayName: user.displayName || 'No Name',
@@ -42,7 +39,6 @@ router.get('/users', verifyToken, requireOrganizationPermission(PERMISSIONS.VIEW
   }
 });
 
-// PUT /api/admin/users/:userId/role - Update user role (organization-scoped)
 router.put('/users/:userId/role', verifyToken, requireOrganizationPermission(PERMISSIONS.MANAGE_ORG_MEMBERS), async (req, res) => {
   try {
     const { userId } = req.params;
@@ -52,7 +48,6 @@ router.put('/users/:userId/role', verifyToken, requireOrganizationPermission(PER
       return res.status(400).json({ error: 'Valid role is required' });
     }
     
-    // Verify admin can manage this user (same org + sufficient permissions)
     const canManage = await canManageUser(req.user.uid, userId);
     if (!canManage) {
       return res.status(403).json({ 
@@ -60,7 +55,6 @@ router.put('/users/:userId/role', verifyToken, requireOrganizationPermission(PER
       });
     }
     
-    // Check if admin can assign this role
     const adminRole = await getUserOrganizationRole(req.user.uid);
     if (!canAssignRole(adminRole, newRole)) {
       return res.status(403).json({ 
@@ -68,10 +62,8 @@ router.put('/users/:userId/role', verifyToken, requireOrganizationPermission(PER
       });
     }
     
-    // Get current role for audit logging
     const currentRole = await getUserOrganizationRole(userId);
     
-    // Prevent demoting organization owner (unless super admin)
     if (currentRole === ROLES.ORG_OWNER && adminRole !== ROLES.SUPER_ADMIN) {
       return res.status(403).json({ 
         error: 'Cannot modify organization owner role' 

@@ -1,12 +1,10 @@
-// services/emailService.js - Free email sharing
 const nodemailer = require('nodemailer');
 
-// Configure free email service (Gmail SMTP)
 const transporter = nodemailer.createTransporter({
   service: 'gmail',
   auth: {
-    user: process.env.EMAIL_USER, // Your Gmail
-    pass: process.env.EMAIL_APP_PASSWORD // App-specific password
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_APP_PASSWORD
   }
 });
 
@@ -72,10 +70,10 @@ const emailService = {
       };
       
       await transporter.sendMail(mailOptions);
-      console.log('✅ File share email sent to:', recipientEmail);
+      console.log('File share email sent to:', recipientEmail);
       
     } catch (error) {
-      console.error('❌ Error sending file share email:', error);
+      console.error('Error sending file share email:', error);
       throw error;
     }
   },
@@ -87,10 +85,10 @@ const emailService = {
       );
       
       await Promise.all(sendPromises);
-      console.log(`✅ Bulk file share emails sent to ${recipients.length} recipients`);
+      console.log(`Bulk file share emails sent to ${recipients.length} recipients`);
       
     } catch (error) {
-      console.error('❌ Error sending bulk file share emails:', error);
+      console.error('Error sending bulk file share emails:', error);
       throw error;
     }
   }

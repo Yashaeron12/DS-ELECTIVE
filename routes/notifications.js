@@ -1,4 +1,3 @@
-// routes/notifications.js - Notification management routes
 const express = require('express');
 const router = express.Router();
 const { verifyToken } = require('../middleware/auth');
@@ -20,7 +19,6 @@ const {
   PRIORITY_LEVELS
 } = require('../services/notificationService');
 
-// GET /api/notifications - Get user notifications
 router.get('/', verifyToken, async (req, res) => {
   try {
     const { 
@@ -31,7 +29,7 @@ router.get('/', verifyToken, async (req, res) => {
     } = req.query;
 
     const options = {
-      limit: Math.min(parseInt(limit), 100), // Cap at 100
+      limit: Math.min(parseInt(limit), 100),
       unreadOnly: unreadOnly === 'true',
       type: type || null
     };
@@ -59,7 +57,6 @@ router.get('/', verifyToken, async (req, res) => {
   }
 });
 
-// GET /api/notifications/unread-count - Get unread notification count
 router.get('/unread-count', verifyToken, async (req, res) => {
   try {
     const unreadCount = await getUnreadNotificationCount(req.user.uid);
@@ -78,8 +75,7 @@ router.get('/unread-count', verifyToken, async (req, res) => {
   }
 });
 
-// POST /api/notifications - Create notification (admin only)
-router.post('/', verifyToken, requirePermission(PERMISSIONS.MANAGE_USERS), async (req, res) => {
+router.post('/', verifyToken, requirePermission(PERMISSIONS.MANAGE_SYSTEM), async (req, res) => {
   try {
     const {
       userId,

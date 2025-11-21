@@ -1,37 +1,27 @@
-// services/notificationService.js - Notification management service
 const admin = require('firebase-admin');
 
 const db = admin.firestore();
 
-// Notification types
 const NOTIFICATION_TYPES = {
-  // File-related notifications
   FILE_UPLOADED: 'file_uploaded',
   FILE_SHARED: 'file_shared',
   FILE_DELETED: 'file_deleted',
   FILE_COMMENT: 'file_comment',
-  
-  // Task-related notifications
   TASK_ASSIGNED: 'task_assigned',
   TASK_COMPLETED: 'task_completed',
   TASK_DUE_SOON: 'task_due_soon',
   TASK_OVERDUE: 'task_overdue',
   TASK_COMMENT: 'task_comment',
-  
-  // Workspace-related notifications
   WORKSPACE_INVITE: 'workspace_invite',
   WORKSPACE_REMOVED: 'workspace_removed',
   WORKSPACE_ROLE_CHANGED: 'workspace_role_changed',
   MEMBER_JOINED: 'member_joined',
   MEMBER_LEFT: 'member_left',
-  
-  // System notifications
   ROLE_CHANGED: 'role_changed',
   SECURITY_ALERT: 'security_alert',
   SYSTEM_ANNOUNCEMENT: 'system_announcement'
 };
 
-// Notification priorities
 const PRIORITY_LEVELS = {
   LOW: 'low',
   MEDIUM: 'medium',
@@ -39,18 +29,6 @@ const PRIORITY_LEVELS = {
   URGENT: 'urgent'
 };
 
-/**
- * Create a new notification
- * @param {Object} notificationData - Notification details
- * @param {string} notificationData.userId - Target user ID
- * @param {string} notificationData.type - Notification type from NOTIFICATION_TYPES
- * @param {string} notificationData.title - Notification title
- * @param {string} notificationData.message - Notification message
- * @param {string} notificationData.priority - Priority level
- * @param {Object} notificationData.metadata - Additional data (workspaceId, fileId, etc.)
- * @param {string} notificationData.triggeredBy - User ID who triggered the notification
- * @returns {Promise<string>} - Notification ID
- */
 async function createNotification(notificationData) {
   try {
     const {
@@ -63,12 +41,10 @@ async function createNotification(notificationData) {
       triggeredBy
     } = notificationData;
 
-    // Validate required fields
     if (!userId || !type || !title || !message) {
       throw new Error('Missing required notification fields');
     }
 
-    // Check if user wants this type of notification
     const userPrefs = await getUserNotificationPreferences(userId);
     if (!userPrefs.enabled || !userPrefs.types[type]) {
       console.log(`Notification ${type} disabled for user ${userId}`);
@@ -90,7 +66,7 @@ async function createNotification(notificationData) {
 
     const docRef = await db.collection('notifications').add(notification);
     
-    console.log(`✅ Notification created: ${docRef.id} for user ${userId}`);
+    console.log(`Notification created: ${docRef.id} for user ${userId}`);
     return docRef.id;
 
   } catch (error) {
