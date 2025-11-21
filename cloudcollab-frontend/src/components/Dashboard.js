@@ -51,7 +51,6 @@ const Dashboard = () => {
       try {
         setLoading(true);
         
-        // Fetch data in parallel
         const [tasksResponse, filesResponse, workspacesResponse] = await Promise.allSettled([
           taskAPI.getTasks(),
           fileAPI.getFiles(),
@@ -62,21 +61,20 @@ const Dashboard = () => {
         const files = filesResponse.status === 'fulfilled' ? (filesResponse.value || []) : [];
         const workspaces = workspacesResponse.status === 'fulfilled' ? (workspacesResponse.value.workspaces || []) : [];
 
-        // Calculate stats
         const activeTasks = tasks.filter(task => !task.completed).length;
         const completedTasks = tasks.filter(task => task.completed).length;
         const totalFiles = files.length;
         const completionPercentage = tasks.length > 0 ? Math.round((completedTasks / tasks.length) * 100) : 0;
 
         setDashboardData({
-          tasks: tasks.slice(0, 5), // Recent 5 tasks
+          tasks: tasks.slice(0, 5),
           files,
           workspaces,
           stats: {
             activeTasks,
             completedTasks,
             totalFiles,
-            teamMembers: 1, // Will be calculated from workspaces later
+            teamMembers: 1,
             completionPercentage
           }
         });
@@ -89,6 +87,10 @@ const Dashboard = () => {
     };
 
     fetchDashboardData();
+    
+    const refreshInterval = setInterval(fetchDashboardData, 5000);
+    
+    return () => clearInterval(refreshInterval);
   }, []);
 
   // Generate dynamic stats from real data

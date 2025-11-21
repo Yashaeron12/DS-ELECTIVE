@@ -19,10 +19,25 @@ export const AuthProvider = ({ children }) => {
   const [needsOrganization, setNeedsOrganization] = useState(false);
 
   useEffect(() => {
-    // Clear any existing authentication data on app load to require fresh login
-    authAPI.logout();
-    console.log('AuthContext: Cleared existing session, requiring fresh login');
-    setLoading(false);
+    const initAuth = async () => {
+      try {
+        const token = localStorage.getItem('authToken');
+        if (token) {
+          const result = await authAPI.verifyToken();
+          if (result.success && result.user) {
+            const userWithOrg = await checkOrganizationStatus(result.user);
+            setUser(userWithOrg);
+          }
+        }
+      } catch (error) {
+        console.error('AuthContext: Token verification failed:', error);
+        authAPI.logout();
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    initAuth();
   }, []);
 
   const checkOrganizationStatus = async (userData) => {
