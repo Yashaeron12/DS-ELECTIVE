@@ -57,9 +57,9 @@ const Dashboard = () => {
           workspaceAPI.getWorkspaces()
         ]);
 
-        const tasks = tasksResponse.status === 'fulfilled' ? (tasksResponse.value.tasks || []) : [];
-        const files = filesResponse.status === 'fulfilled' ? (filesResponse.value || []) : [];
-        const workspaces = workspacesResponse.status === 'fulfilled' ? (workspacesResponse.value.workspaces || []) : [];
+        const tasks = tasksResponse.status === 'fulfilled' ? (Array.isArray(tasksResponse.value) ? tasksResponse.value : (tasksResponse.value.tasks || [])) : [];
+        const files = filesResponse.status === 'fulfilled' ? (Array.isArray(filesResponse.value) ? filesResponse.value : (filesResponse.value.files || [])) : [];
+        const workspaces = workspacesResponse.status === 'fulfilled' ? (Array.isArray(workspacesResponse.value) ? workspacesResponse.value : (workspacesResponse.value.workspaces || [])) : [];
 
         const activeTasks = tasks.filter(task => !task.completed).length;
         const completedTasks = tasks.filter(task => task.completed).length;
