@@ -394,8 +394,16 @@ const requireOwnershipOrRole = (requiredRole) => {
         return res.status(401).json({ error: 'Authentication required' });
       }
       
+      // If checking task ownership
+      if (req.params.id && req.baseUrl.includes('/tasks')) {
+        const taskDoc = await db.collection('tasks').doc(req.params.id).get();
+        if (taskDoc.exists && (taskDoc.data().userId === req.user.uid || taskDoc.data().assignedTo === req.user.uid)) {
+          return next(); // User owns or is assigned the task
+        }
+      }
+      
       // If checking file ownership
-      if (req.params.id && req.route.path.includes('/files/')) {
+      if (req.params.id && req.baseUrl.includes('/files')) {
         const fileDoc = await db.collection('files').doc(req.params.id).get();
         if (fileDoc.exists && fileDoc.data().uploadedBy === req.user.uid) {
           return next(); // User owns the file
@@ -404,7 +412,7 @@ const requireOwnershipOrRole = (requiredRole) => {
       
       // Check role as fallback
       const userRole = await getUserSystemRole(req.user.uid);
-      const roleHierarchy = [ROLES.VIEWER, ROLES.MEMBER, ROLES.MANAGER, ROLES.ADMIN, ROLES.SUPER_ADMIN];
+      const roleHierarchy = [ROLES.VIEWER, ROLES.MEMBER, ROLES.MANAGER, ROLES.WORKSPACE_ADMIN, ROLES.ORG_ADMIN, ROLES.ORG_OWNER, ROLES.SUPER_ADMIN];
       const userRoleIndex = roleHierarchy.indexOf(userRole);
       const requiredRoleIndex = roleHierarchy.indexOf(requiredRole);
       
