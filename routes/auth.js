@@ -430,4 +430,38 @@ router.get('/users', verifyToken, requirePermission(PERMISSIONS.VIEW_USERS), asy
   }
 });
 
+router.get('/verify', verifyToken, async (req, res) => {
+  try {
+    const db = admin.firestore();
+    const userDoc = await db.collection('users').doc(req.user.uid).get();
+    
+    if (!userDoc.exists) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found'
+      });
+    }
+    
+    const userData = userDoc.data();
+    
+    res.json({
+      success: true,
+      user: {
+        uid: req.user.uid,
+        email: req.user.email,
+        displayName: userData.displayName,
+        organizationId: userData.organizationId,
+        organizationRole: userData.organizationRole,
+        role: userData.role
+      }
+    });
+  } catch (error) {
+    console.error('Error verifying token:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to verify token'
+    });
+  }
+});
+
 module.exports = router;

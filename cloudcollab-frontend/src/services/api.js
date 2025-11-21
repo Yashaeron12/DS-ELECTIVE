@@ -143,6 +143,21 @@ export const authAPI = {
     localStorage.removeItem('userId');
   },
   
+  verifyToken: async () => {
+    try {
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        return { success: false, error: 'No token found' };
+      }
+      
+      const response = await api.get('/auth/verify');
+      return response.data;
+    } catch (error) {
+      console.error('API: Token verification failed:', error);
+      return { success: false, error: 'Token verification failed' };
+    }
+  },
+  
   getCurrentUser: () => {
     const token = localStorage.getItem('authToken');
     const email = localStorage.getItem('userEmail');
