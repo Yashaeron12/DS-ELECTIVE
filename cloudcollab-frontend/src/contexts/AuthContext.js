@@ -21,16 +21,13 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const initAuth = async () => {
       try {
-        const token = localStorage.getItem('authToken');
-        if (token) {
-          const result = await authAPI.verifyToken();
-          if (result.success && result.user) {
-            const userWithOrg = await checkOrganizationStatus(result.user);
-            setUser(userWithOrg);
-          }
+        const currentUser = authAPI.getCurrentUser();
+        if (currentUser) {
+          const userWithOrg = await checkOrganizationStatus(currentUser);
+          setUser(userWithOrg);
         }
       } catch (error) {
-        console.error('AuthContext: Token verification failed:', error);
+        console.error('AuthContext: Auth initialization failed:', error);
         authAPI.logout();
       } finally {
         setLoading(false);
