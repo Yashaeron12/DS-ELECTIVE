@@ -91,6 +91,10 @@ router.post('/', verifyToken, requirePermission(PERMISSIONS.CREATE_TASKS), async
     
     const docRef = await db.collection('tasks').add(taskData);
     
+    // Fetch the created task to get actual timestamps
+    const createdTaskDoc = await docRef.get();
+    const createdTaskData = createdTaskDoc.data();
+    
     if (assignedTo && assignedTo !== req.user.uid) {
       try {
         await notificationHelpers.taskAssigned({
@@ -115,9 +119,9 @@ router.post('/', verifyToken, requirePermission(PERMISSIONS.CREATE_TASKS), async
     
     res.status(201).json({ 
       id: docRef.id, 
-      ...taskData,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      ...createdTaskData,
+      createdAt: createdTaskData.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+      updatedAt: createdTaskData.updatedAt?.toDate?.()?.toISOString() || new Date().toISOString()
     });
   } catch (error) {
     console.error('Error creating task:', error);
