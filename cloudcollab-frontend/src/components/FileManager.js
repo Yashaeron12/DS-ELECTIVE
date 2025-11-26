@@ -278,23 +278,23 @@ const FileManager = () => {
     try {
       console.log('🔽 Download clicked for file:', file);
       
-      // Use the same API base URL as the rest of the app
+      // Always construct download URL dynamically to avoid localhost issues
       const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://cloudcollab-backend.onrender.com/api';
       
-      let downloadUrl;
-      
+      // Extract fileId from storagePath or use file.id
+      let fileId = file.id;
       if (file.downloadUrl) {
-        // Use the pre-generated download URL from the database
-        downloadUrl = file.downloadUrl;
-        console.log('📎 Using stored download URL:', downloadUrl);
-      } else {
-        // This shouldn't happen if files are properly stored, but fallback
-        console.warn('⚠️ No downloadUrl found, using file ID fallback');
-        downloadUrl = `${API_BASE_URL}/files/download/${file.id}`;
+        // Extract fileId from downloadUrl if it exists
+        const urlMatch = file.downloadUrl.match(/\/download\/([^/]+)$/);
+        if (urlMatch && urlMatch[1]) {
+          fileId = urlMatch[1];
+        }
       }
       
-      // Test the URL first to see if it's accessible
-      console.log('🧪 Testing download URL:', downloadUrl);
+      // Always use production URL, never localhost
+      const downloadUrl = `${API_BASE_URL}/files/download/${fileId}`;
+      
+      console.log('🧪 Download URL:', downloadUrl);
       
       try {
         // Fetch the file with authentication
