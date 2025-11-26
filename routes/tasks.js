@@ -15,16 +15,14 @@ const db = admin.firestore();
 
 router.get('/', verifyToken, requirePermission(PERMISSIONS.VIEW_TASKS), async (req, res) => {
   try {
-    // Fetch tasks created by user
+    // Fetch tasks created by user (without orderBy to avoid index requirement)
     const createdTasksSnapshot = await db.collection('tasks')
       .where('userId', '==', req.user.uid)
-      .orderBy('createdAt', 'desc')
       .get();
     
-    // Fetch tasks assigned to user
+    // Fetch tasks assigned to user (without orderBy to avoid index requirement)
     const assignedTasksSnapshot = await db.collection('tasks')
       .where('assignedTo', '==', req.user.uid)
-      .orderBy('createdAt', 'desc')
       .get();
     
     const taskMap = new Map();
