@@ -15,20 +15,49 @@ const db = admin.firestore();
 
 router.get('/', verifyToken, requirePermission(PERMISSIONS.VIEW_TASKS), async (req, res) => {
   try {
-    const tasksSnapshot = await db.collection('tasks')
+    // Fetch tasks created by user
+    const createdTasksSnapshot = await db.collection('tasks')
       .where('userId', '==', req.user.uid)
       .orderBy('createdAt', 'desc')
       .get();
     
-    const tasks = [];
-    tasksSnapshot.forEach(doc => {
+    // Fetch tasks assigned to user
+    const assignedTasksSnapshot = await db.collection('tasks')
+      .where('assignedTo', '==', req.user.uid)
+      .orderBy('createdAt', 'desc')
+      .get();
+    
+    const taskMap = new Map();
+    
+    // Add created tasks
+    createdTasksSnapshot.forEach(doc => {
       const data = doc.data();
-      tasks.push({ 
+      taskMap.set(doc.id, { 
         id: doc.id, 
         ...data,
         createdAt: data.createdAt?.toDate?.() || null,
         updatedAt: data.updatedAt?.toDate?.() || null
       });
+    });
+    
+    // Add assigned tasks (avoid duplicates if user assigned task to themselves)
+    assignedTasksSnapshot.forEach(doc => {
+      if (!taskMap.has(doc.id)) {
+        const data = doc.data();
+        taskMap.set(doc.id, { 
+          id: doc.id, 
+          ...data,
+          createdAt: data.createdAt?.toDate?.() || null,
+          updatedAt: data.updatedAt?.toDate?.() || null
+        });
+      }
+    });
+    
+    // Convert map to array and sort by createdAt
+    const tasks = Array.from(taskMap.values()).sort((a, b) => {
+      if (!a.createdAt) return 1;
+      if (!b.createdAt) return -1;
+      return b.createdAt - a.createdAt;
     });
     
     res.json(tasks);
