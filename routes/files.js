@@ -199,7 +199,9 @@ router.post('/upload', verifyToken, requirePermission(PERMISSIONS.UPLOAD_FILES),
 
     // Generate download URL for local file
     const fileId = path.basename(file.path, path.extname(file.path));
-    const downloadUrl = `http://localhost:5000/api/files/download/${fileId}`;
+    // Use environment variable for base URL, fallback to localhost for development
+    const baseUrl = process.env.API_BASE_URL || process.env.RENDER_EXTERNAL_URL || 'http://localhost:5000';
+    const downloadUrl = `${baseUrl}/api/files/download/${fileId}`;
 
     // Save file metadata to Firestore
     const fileData = {
@@ -355,7 +357,7 @@ router.post('/upload', verifyToken, requirePermission(PERMISSIONS.UPLOAD_FILES),
 });
 
 // GET /api/files/download/:fileId - Download file
-router.get('/download/:fileId', async (req, res) => {
+router.get('/download/:fileId', verifyToken, async (req, res) => {
   try {
     const { fileId } = req.params;
     
